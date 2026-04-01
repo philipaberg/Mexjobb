@@ -1,4 +1,8 @@
 """
+AI-generated code for plotting.    
+"""
+
+"""
 Visualize simulation results from datageneration.py.
 Usage:
     python plots.py results_known_j.npy          # plots all eta/gamma combos

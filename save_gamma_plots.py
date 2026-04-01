@@ -1,4 +1,9 @@
 """
+AI-generated code for plotting.
+"""
+
+
+"""
 Saves plots studying the effect of gamma on CL(R_hat) (recovered reportings only).
 
 Plot 1: Distribution of total reserve error — one figure per eta,

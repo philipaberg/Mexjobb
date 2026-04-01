@@ -1,3 +1,7 @@
+"""
+AI-generated code for plotting."""
+
+
 import sys
 import os
 import numpy as np
