@@ -212,6 +212,6 @@ def chain_ladder(cum, n_rows, max_j):
     for row in range(n_rows):
         last = max(j for j in range(max_j) if not np.isnan(cum[row, j]))
         for j in range(last, max_j - 1):
-            completed[row, j + 1] = completed[row, j] * factors[j]
+            completed[row, j + 1] = np.round(completed[row, j] * factors[j]).astype(int)
 
     return factors, completed
