@@ -1,7 +1,7 @@
 import numpy as np
 from core import (
     n_occ, J, simulate_R, build_claims, simulate_queue,
-    recover_reportings_known_j, recover_reportings_est_j, compute_J_P,
+    recover_reportings, compute_J_P, compute_J_P_min,
 )
 
 N_SIM = 5
@@ -17,16 +17,17 @@ for sim in range(N_SIM):
 
     R = R_full[-n_occ:]
     J_P = compute_J_P(P_full, n_occ)
+    J_P_min = compute_J_P_min(P_full, n_occ, J_P)
 
-    R_hat_10 = recover_reportings_known_j(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, gamma=10)
-    R_hat_100 = recover_reportings_known_j(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, gamma=100)
-    R_hat_ej = recover_reportings_est_j(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, gamma=0)
+    R_hat_J = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J, gamma=100)
+    R_hat_JP = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J_P, gamma=0)
+    R_hat_JPmin = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J_P_min, gamma=0)
 
     P = P_full[-n_occ:, :J_P + 1]
 
     print(f"Simulation {sim + 1}")
     print(R[:, :J + 1])
-    print(R_hat_10[:, :J + 1])
-    print(R_hat_100[:, :J + 1])
-    print(R_hat_ej[:, :J + 1])
+    print(R_hat_J[:, :J + 1])
+    print(R_hat_JP[:, :J_P + 1])
+    print(R_hat_JPmin[:, :J_P_min + 1])
     print(P)
