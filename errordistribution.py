@@ -2,7 +2,7 @@ import numpy as np
 from tqdm import tqdm
 from core import (J, n_occ, t_eval, alpha_j, beta, build_triangle, chain_ladder,)
 
-N_SIM = 100_000
+N_SIM = 100000
 
 errors = []
 
