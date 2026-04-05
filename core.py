@@ -10,7 +10,7 @@ beta = 2 / 1000
 alpha_j = mu_j * beta                    
 alpha = alpha_j.sum()
 
-T = 120                       # total simulation periods
+T = 250                       # total simulation periods
 n_occ = 17                    # occurrence periods analysed
 occ_start = T - n_occ
 t_eval = n_occ - 1                       
@@ -72,9 +72,32 @@ def simulate_queue(claims, claims_by_cal, eta, T=T):
 
     return P_full, B_total, P_total
 
-# Checks last non-zero development period for processed claims, up to 17(n_occ). will be used to estimate J
+# Checks last non-zero development period for observed processed claims, estimates J
 def compute_J_P(P_full, n_occ):
-    return max((j for j in range(n_occ) if np.any(P_full[-n_occ:, j] > 0)), default=n_occ - 1)
+    P = P_full[-n_occ:]
+    best = 0
+    for i in range(n_occ):
+        max_col = n_occ - 1 - i  # last observed column for row i
+        for j in range(max_col, best, -1):
+            if P[i, j] > 0:
+                best = j
+                break
+    return best
+
+# Check smallest j s.t P_{i,j} > 0 for some i<n_occ-J_P
+def compute_J_P_min(P_full, n_occ, J_P):
+    P = P_full[-n_occ:]
+    n_rows = n_occ - J_P
+    last_nz = []
+    for i in range(n_rows):
+        max_col = n_occ - 1 - i
+        col = 0
+        for j in range(max_col, -1, -1):
+            if P[i, j] > 0:
+                col = j
+                break
+        last_nz.append(col)
+    return min(last_nz)
 
 # Gives a[s] and b[s]
 def compute_ab(B_total, P_total, R_total, occ_start, n_occ):
@@ -87,10 +110,12 @@ def compute_ab(B_total, P_total, R_total, occ_start, n_occ):
     return a, b
 
 
-# Recovery functions ===========================================================
-
-# Recovers R_hat by minimizing eq. 16, assuming J is known.
-def recover_reportings_known_j(P_full, B_total, R_total, P_total, occ_start, n_occ, J_hat, gamma=0):
+# Recovery function ===========================================================
+""""
+Recovers R_hat by minimizing eq. 16, assuming J_est is the true J.
+J_hat controlls the information used"""
+ 
+def recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_hat, J_est, gamma=0):
     a, b = compute_ab(B_total, P_total, R_total, occ_start, n_occ)
 
     def build_block_Mr(i): # build M_r^(i)
@@ -133,11 +158,11 @@ def recover_reportings_known_j(P_full, B_total, R_total, P_total, occ_start, n_o
     d = Mp @ p
 
     if gamma > 0:
-        A = np.zeros((n_occ - J, dim))
-        s_vec = np.zeros(n_occ - J)
-        for k, s in enumerate(range(J, n_occ)):
+        A = np.zeros((n_occ - J_est, dim))
+        s_vec = np.zeros(n_occ - J_est)
+        for k, s in enumerate(range(J_est, n_occ)):
             s_vec[k] = R_total[occ_start + s]
-            for j in range(J + 1):
+            for j in range(J_est + 1):
                 i = s - j
                 if 0 <= i < n_occ:
                     A[k, i * (J_hat + 1) + j] = 1.0
@@ -148,68 +173,12 @@ def recover_reportings_known_j(P_full, B_total, R_total, P_total, occ_start, n_o
     ub = np.full(dim, np.inf)
     for i in range(n_occ):
         for j in range(J_hat + 1):
-            if j > J or i + j >= n_occ:
+            if j > J_est or i + j >= n_occ:
                 ub[i * (J_hat + 1) + j] = 0.4 
     result = lsq_linear(C, d, bounds=(lb, ub), method='bvls')
 
-    return np.round(result.x).reshape(n_occ, J_hat + 1).astype(int)
-
-# same, but uses estimated J_hat instead of true J
-def recover_reportings_est_j(P_full, B_total, R_total, P_total, occ_start, n_occ, J_hat, gamma=0):
-    a, b = compute_ab(B_total, P_total, R_total, occ_start, n_occ)
-
-    def build_block_Mr(i):
-        M = np.zeros((J_hat + 1, J_hat + 1))
-        for row in range(J_hat + 1):
-            s = i + row
-            if s >= n_occ:
-                continue
-            M[row, row] = b[s]
-            for col in range(row):
-                M[row, col] = a[s]
-        return M
-
-    def build_block_Mp(i):
-        M = np.zeros((J_hat + 1, J_hat + 1))
-        for row in range(J_hat + 1):
-            s = i + row
-            if s >= n_occ:
-                continue
-            M[row, row] = 1.0
-            for col in range(row):
-                M[row, col] = a[s]
-        return M
-
-    dim = (J_hat + 1) * n_occ
-    Mr = np.zeros((dim, dim))
-    Mp = np.zeros((dim, dim))
-    for i in range(n_occ):
-        sl = slice(i * (J_hat + 1), (i + 1) * (J_hat + 1))
-        Mr[sl, sl] = build_block_Mr(i)
-        Mp[sl, sl] = build_block_Mp(i)
-
-    p = np.zeros(dim)
-    for i in range(n_occ):
-        for j in range(J_hat + 1):
-            if i + j < n_occ:
-                p[i * (J_hat + 1) + j] = P_full[occ_start + i, j]
-
-    C = Mr
-    d = Mp @ p
-
-    if gamma > 0:
-        constrained = range(J_hat, n_occ)
-        A = np.zeros(((n_occ - J_hat), dim))
-        s_vec = np.zeros(n_occ - J_hat)
-        for k, s in enumerate(constrained):
-            s_vec[k] = R_total[occ_start + s]
-            for j in range(J_hat + 1):
-                i = s - j
-                A[k, i * (J_hat + 1) + j] = 1.0
-        C = np.vstack([C, np.sqrt(gamma) * A])
-        d = np.concatenate([d, np.sqrt(gamma) * s_vec])
-
-    result = lsq_linear(C, d, bounds=(np.zeros(dim), np.full(dim, np.inf)), method='bvls')
+    if not np.isfinite(result.x).all():
+        raise ValueError("lsq_linear failed: result contains non-finite values")
 
     return np.round(result.x).reshape(n_occ, J_hat + 1).astype(int)
 
