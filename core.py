@@ -178,7 +178,7 @@ def recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_ha
     result = lsq_linear(C, d, bounds=(lb, ub), method='bvls')
 
     if not np.isfinite(result.x).all():
-        raise ValueError("lsq_linear failed: result contains non-finite values")
+        raise ValueError("lsq_linear failed: result contains absurd values")
 
     return np.round(result.x).reshape(n_occ, J_hat + 1).astype(int)
 

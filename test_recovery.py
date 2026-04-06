@@ -25,9 +25,14 @@ for sim in range(N_SIM):
 
     P = P_full[-n_occ:, :J_P + 1]
 
-    print(f"Simulation {sim + 1}")
+    print(f"\n=== Simulation {sim + 1}  (J={J}, J_P={J_P}, J_P_min={J_P_min}) ===\n")
+    print("R:")
     print(R[:, :J + 1])
+    print("\nR̂_J:")
     print(R_hat_J[:, :J + 1])
+    print("\nR̂_J_P:")
     print(R_hat_JP[:, :J_P + 1])
+    print("\nR̂_J_P_min:")
     print(R_hat_JPmin[:, :J_P_min + 1])
+    print("\nP:")
     print(P)

@@ -89,7 +89,7 @@ if __name__ == "__main__":
     skipped = sum(1 for r in results if np.isnan(r["sum_err_J"]))
     print(f"{skipped}/{N_SIM} simulations had solver failure (error values set to NaN)")
 
-    np.save("diagresults.npy", {
+    np.save("errordiagresults.npy", {
         "J_hats":         np.array([r["J_hat"]        for r in results]),
         "J_P_mins":       np.array([r["J_P_min"]      for r in results]),
         "as":             np.array([r["a"]             for r in results]),
