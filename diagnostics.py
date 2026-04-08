@@ -14,7 +14,7 @@ ETA = 1.1
 GAMMA_J = 100
 GAMMA_J_P = 0
 GAMMA_J_P_MIN = 0
-N_SIM = 40000
+N_SIM = 20000
 
 
 def run_sim(_):
@@ -32,11 +32,18 @@ def run_sim(_):
 
     J_P = compute_J_P(P_full, n_occ)
     J_P_min = compute_J_P_min(P_full, n_occ, J_P)
+    P_obs = P_full[-n_occ:, :J_P + 1]
+    n_nz_cols = int(np.count_nonzero(np.any(P_obs[:n_occ, :] != 0, axis=0)))
+    nz_rows = int(np.count_nonzero(np.any(P_obs[:n_occ, :] != 0, axis=1)))
     a, b = compute_ab(B_total, P_total, R_total, occ_start, n_occ)
 
     result = {
         "J_hat":         J_P,
         "J_P_min":       J_P_min,
+        "n_nz_cols":     n_nz_cols,
+        "nz_rows":       nz_rows,
+        "nz_ratio":      n_nz_cols / (J_P + 1),
+        "nz_row_ratio":  nz_rows / n_occ,
         "a":             a,
         "b":             b,
         "B_t":           B_total[-n_occ:],
@@ -52,7 +59,7 @@ def run_sim(_):
 
     try:
         # CL(P)
-        P = P_full[-n_occ:, :J_P + 1]
+        P = P_obs
         _, CL_P = chain_ladder(build_triangle(P, n_occ, J_P + 1, t_eval), n_occ, J_P + 1)
         result["sum_err_P"] = (CL_P[:, -1] - true_ult).sum()
         result["rel_err_P"] = np.abs(result["sum_err_P"] - err_R.sum())
@@ -89,9 +96,13 @@ if __name__ == "__main__":
     skipped = sum(1 for r in results if np.isnan(r["sum_err_J"]))
     print(f"{skipped}/{N_SIM} simulations had solver failure (error values set to NaN)")
 
-    np.save("errordiagresults.npy", {
+    np.save("errorzerocolsresults.npy", {
         "J_hats":         np.array([r["J_hat"]        for r in results]),
         "J_P_mins":       np.array([r["J_P_min"]      for r in results]),
+        "n_nz_cols":      np.array([r["n_nz_cols"]    for r in results]),
+        "nz_rows":        np.array([r["nz_rows"]      for r in results]),
+        "nz_ratio":       np.array([r["nz_ratio"]     for r in results]),
+        "nz_row_ratio":   np.array([r["nz_row_ratio"] for r in results]),
         "as":             np.array([r["a"]             for r in results]),
         "bs":             np.array([r["b"]             for r in results]),
         "B_ts":           np.array([r["B_t"]           for r in results]),
