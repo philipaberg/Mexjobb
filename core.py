@@ -215,3 +215,31 @@ def chain_ladder(cum, n_rows, max_j):
             completed[row, j + 1] = np.round(completed[row, j] * factors[j]).astype(int)
 
     return factors, completed
+
+
+# Benktander function =======================================================
+
+# A priori expected ultimate must be provided. This function returns the completed triangle
+def benktander(cum, factors, prior, a, n_rows, max_j, kappa = 1.0):
+    ldf = np.ones(max_j)
+    for j in range(max_j - 2, -1, -1):
+        ldf[j] = ldf[j + 1] * factors[j]
+    weights = 1.0 - 1.0 / ldf             # proportion left to be observed according to dev. factors
+
+    completed = cum.copy()
+    for row in range(n_rows):
+        obs = [j for j in range(max_j) if not np.isnan(cum[row, j])]
+        j_last = max(obs)
+        if j_last == max_j - 1:
+            continue
+        q = weights[j_last]
+        """This is a heuristic formula, which can be discussed"""
+        delta = kappa / a.mean()
+        z = (1.0 - q) ** delta
+        u_cl = cum[row, j_last] * ldf[j_last]
+        u_bf = cum[row, j_last] + q * prior[row]
+        completed_val = z * u_cl + (1 - z) * u_bf
+        for j in range(j_last + 1, max_j):
+            completed[row, j] = np.round(completed_val / ldf[j]).astype(int)
+
+    return completed

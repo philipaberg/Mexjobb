@@ -38,7 +38,7 @@ def run_sim(_):
             for gamma in GAMMA_LIST:
                 # True J
                 R_hat_trueJ = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J, gamma)
-                _, CL_trueJ = chain_ladder(build_triangle(R_hat_trueJ, n_occ, J + 1, t_eval), n_occ, J + 1)
+                _, CL_trueJ = chain_ladder(build_triangle(R_hat_trueJ, n_occ, J_P + 1, t_eval), n_occ, J_P + 1)
 
                 # J_P
                 R_hat_JP = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J_P, gamma)
@@ -46,7 +46,7 @@ def run_sim(_):
 
                 # J_P_min
                 R_hat_JPmin = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J_P_min, gamma)
-                _, CL_JPmin = chain_ladder(build_triangle(R_hat_JPmin, n_occ, J_P_min + 1, t_eval), n_occ, J_P_min + 1)
+                _, CL_JPmin = chain_ladder(build_triangle(R_hat_JPmin, n_occ, J_P + 1, t_eval), n_occ, J_P + 1)
 
                 res[(eta, gamma)] = np.stack([
                     err_P,
