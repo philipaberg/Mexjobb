@@ -11,7 +11,7 @@ from core import (
 # parameters to test and store errors
 ETA_LIST   = [1.10, 1.20, 1.40]
 GAMMA_LIST = [0, 1.0, 10, 100]
-N_SIM      = 10000
+N_SIM      = 500
 
 def run_sim(_):
     try:
@@ -38,7 +38,7 @@ def run_sim(_):
             for gamma in GAMMA_LIST:
                 # True J
                 R_hat_trueJ = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J, gamma)
-                _, CL_trueJ = chain_ladder(build_triangle(R_hat_trueJ, n_occ, J_P + 1, t_eval), n_occ, J_P + 1)
+                _, CL_trueJ = chain_ladder(build_triangle(R_hat_trueJ, n_occ, J + 1, t_eval), n_occ, J + 1)
 
                 # J_P
                 R_hat_JP = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J_P, gamma)
@@ -46,7 +46,7 @@ def run_sim(_):
 
                 # J_P_min
                 R_hat_JPmin = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J_P_min, gamma)
-                _, CL_JPmin = chain_ladder(build_triangle(R_hat_JPmin, n_occ, J_P + 1, t_eval), n_occ, J_P + 1)
+                _, CL_JPmin = chain_ladder(build_triangle(R_hat_JPmin, n_occ, J_P_min + 1, t_eval), n_occ, J_P_min + 1)
 
                 res[(eta, gamma)] = np.stack([
                     err_P,
@@ -76,4 +76,4 @@ if __name__ == "__main__":
             errors[key].append(res[key])
 
     print(f"Done — {skipped}/{N_SIM} simulations skipped due to solver failure")
-    np.save("etagammaresults.npy", {"errors": errors, "ETA_LIST": ETA_LIST, "GAMMA_LIST": GAMMA_LIST})
+    np.save("braetagammaresults.npy", {"errors": errors, "ETA_LIST": ETA_LIST, "GAMMA_LIST": GAMMA_LIST})

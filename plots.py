@@ -105,7 +105,7 @@ for ax, method_idx, color in zip(axes, [0, 1, 2], COLORS):
 axes[0].set_ylabel("Density")
 plt.tight_layout()
 #plt.savefig("figures/plot1_dist_clp_clr_clrj.png", dpi=150)
-#plt.show()
+plt.show()
 
 # ── Plot 2: RMSE bar chart — CL(P), CL(R), CL(R̂,J) ─────────────────────────
 
@@ -116,7 +116,7 @@ ax.set_title(r"RMSE  ($\eta=" + f"{ETA_PLOT}$, $\\gamma={GAMMA_PLOT}$)")
 ax.set_ylabel("RMSE")
 plt.tight_layout()
 #plt.savefig("figures/plot2_rmse_clp_clr_clrj.png", dpi=150)
-#plt.show()
+plt.show()
 
 # ── Plots 3–5: Distribution by gamma + RMSE by gamma for each recovery method ─
 
@@ -151,7 +151,7 @@ def plot_by_gamma(method_idx, fname_prefix):
     axes[0].set_ylabel("Density")
     plt.tight_layout(w_pad=2.5)
     #plt.savefig(f"figures/{fname_prefix}_dist_by_gamma.png", dpi=150)
-    #plt.show()
+    plt.show()
 
     # RMSE bar chart by gamma
     rmse_vals = [get_rmse(ETA_PLOT, gamma)[method_idx] for gamma in GAMMA_LIST]
@@ -162,7 +162,7 @@ def plot_by_gamma(method_idx, fname_prefix):
     ax.set_ylabel("RMSE")
     plt.tight_layout()
     #plt.savefig(f"figures/{fname_prefix}_rmse_by_gamma.png", dpi=150)
-    #plt.show()
+    plt.show()
 
 plot_by_gamma(2, "plot3_clrj")     # CL(R̂,J)
 plot_by_gamma(3, "plot4_clrjp")    # CL(R̂,J_P)
@@ -195,7 +195,7 @@ for ax, method_idx, color in zip(axes, recovery_indices, COLORS):
 axes[0].set_ylabel("Density")
 plt.tight_layout()
 #plt.savefig("figures/plot6a_recovery_dist.png", dpi=150)
-#plt.show()
+plt.show()
 
 # 6b: RMSE bar chart
 rmse_vals = get_rmse(ETA_PLOT, GAMMA_PLOT)[recovery_indices]

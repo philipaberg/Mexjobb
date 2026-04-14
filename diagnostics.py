@@ -66,7 +66,7 @@ def run_sim(_):
 
         # CL(Rhat, J)
         R_hat_J = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J, GAMMA_J)
-        _, CL_J = chain_ladder(build_triangle(R_hat_J, n_occ, J_P + 1, t_eval), n_occ, J_P + 1)
+        _, CL_J = chain_ladder(build_triangle(R_hat_J, n_occ, J + 1, t_eval), n_occ, J + 1)
         result["sum_err_J"] = (CL_J[:, -1] - true_ult).sum()
         result["rel_err_J"] = np.abs(result["sum_err_J"] - err_R.sum())
 
@@ -78,7 +78,7 @@ def run_sim(_):
 
         # CL(Rhat, J_P_min)
         R_hat_JPmin = recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_P, J_P_min, GAMMA_J_P_MIN)
-        _, CL_JPmin = chain_ladder(build_triangle(R_hat_JPmin, n_occ, J_P + 1, t_eval), n_occ, J_P + 1)
+        _, CL_JPmin = chain_ladder(build_triangle(R_hat_JPmin, n_occ, J_P_min + 1, t_eval), n_occ, J_P_min + 1)
         result["sum_err_JPmin"] = (CL_JPmin[:, -1] - true_ult).sum()
         result["rel_err_JPmin"] = np.abs(result["sum_err_JPmin"] - err_R.sum())
 
