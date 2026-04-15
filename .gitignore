@@ -2,3 +2,7 @@
 *.npy
 __pycache__/
 figures/
+
+plot_results.py
+plots.py
+plot_diagnostics.py
