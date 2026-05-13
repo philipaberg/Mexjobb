@@ -72,6 +72,15 @@ def simulate_queue(claims, claims_by_cal, eta, T=T):
 
     return P_full, B_total, P_total
 
+def known_reportings(claims, P_total, T=T):
+    C = np.sum(P_total[:T]) # total processing capacity over T periods
+    R_known = np.zeros((T, J + 1), dtype=int)
+
+    for i, j, cal, _ in claims[:C]:
+        R_known[i, j] += 1
+
+    return R_known
+
 # Checks last non-zero development period for observed processed claims, estimates J
 def compute_J_P(P_full, n_occ):
     P = P_full[-n_occ:]
@@ -175,6 +184,89 @@ def recover_reportings(P_full, B_total, R_total, P_total, occ_start, n_occ, J_ha
         for j in range(J_hat + 1):
             if j > J_est or i + j >= n_occ:
                 ub[i * (J_hat + 1) + j] = 0.4 
+    result = lsq_linear(C, d, bounds=(lb, ub), method='bvls')
+
+    if not np.isfinite(result.x).all():
+        raise ValueError("lsq_linear failed: result contains absurd values")
+
+    return np.round(result.x).reshape(n_occ, J_hat + 1).astype(int)
+
+
+# Same but bounds are set based on known reportings
+def recover_reportings_known_labels(P_full, B_total, R_total, P_total, R_known, occ_start, n_occ, J_hat, J_est, gamma=0):
+    a, b = compute_ab(B_total, P_total, R_total, occ_start, n_occ)
+
+    def build_block_Mr(i): # build M_r^(i)
+        M = np.zeros((J_hat + 1, J_hat + 1))
+        for row in range(J_hat + 1):
+            s = i + row
+            if s >= n_occ:
+                continue
+            M[row, row] = b[s]
+            for col in range(row):
+                M[row, col] = a[s]
+        return M
+
+    def build_block_Mp(i):
+        M = np.zeros((J_hat + 1, J_hat + 1))
+        for row in range(J_hat + 1):
+            s = i + row
+            if s >= n_occ:
+                continue
+            M[row, row] = 1.0
+            for col in range(row):
+                M[row, col] = a[s]
+        return M
+
+    dim = (J_hat + 1) * n_occ
+    Mr = np.zeros((dim, dim))
+    Mp = np.zeros((dim, dim))
+    for i in range(n_occ):
+        sl = slice(i * (J_hat + 1), (i + 1) * (J_hat + 1))
+        Mr[sl, sl] = build_block_Mr(i)
+        Mp[sl, sl] = build_block_Mp(i)
+
+    p = np.zeros(dim)
+    for i in range(n_occ):
+        for j in range(J_hat + 1):
+            if i + j < n_occ:
+                p[i * (J_hat + 1) + j] = P_full[occ_start + i, j]
+
+    C = Mr
+    d = Mp @ p
+
+    if gamma > 0:
+        A = np.zeros((n_occ - J_est, dim))
+        s_vec = np.zeros(n_occ - J_est)
+        for k, s in enumerate(range(J_est, n_occ)):
+            s_vec[k] = R_total[occ_start + s]
+            for j in range(J_est + 1):
+                i = s - j
+                if 0 <= i < n_occ:
+                    A[k, i * (J_hat + 1) + j] = 1.0
+        C = np.vstack([C, np.sqrt(gamma) * A])
+        d = np.concatenate([d, np.sqrt(gamma) * s_vec])
+
+    n_processed = int(np.sum(R_known))
+    periods_processed = int(np.argmax(np.cumsum(R_total) > n_processed)) - 1
+
+    lb = np.zeros(dim)
+    ub = np.full(dim, np.inf)
+    for i in range(n_occ):
+        for j in range(J_hat + 1):
+            idx = i * (J_hat + 1) + j
+            cal = occ_start + i + j
+            r = R_known[occ_start + i, j] if j < (J_est + 1) else 0
+            if cal <= periods_processed:
+                lb[idx] = r
+                ub[idx] = r + 0.4
+            elif cal == periods_processed + 1:
+                lb[idx] = r
+                if j > J_est or i + j >= n_occ:
+                    ub[idx] = 0.4
+            else:
+                if j > J_est or i + j >= n_occ:
+                    ub[idx] = 0.4
     result = lsq_linear(C, d, bounds=(lb, ub), method='bvls')
 
     if not np.isfinite(result.x).all():
