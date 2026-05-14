@@ -128,8 +128,8 @@ for ax, method_idx, color in zip(axes, [0, 1, 2], COLORS):
     ax.set_xlabel("Total error")
 axes[0].set_ylabel("Density")
 plt.tight_layout()
-plt.savefig("finalfigures/eg_hist_clp_clr_clrj.png", dpi=150)
-plt.show()
+# plt.savefig("finalfigures/eg_hist_clp_clr_clrj.png", dpi=150)
+# plt.show()
 
 # ── EG Plot 2: RMSE bar chart — CL(P), CL(R), CL(R̂,J) ──────────────────────
 rmse_vals = get_eg_rmse(ETA_PLOT, GAMMA_PLOT)[[0, 1, 2]]
@@ -138,8 +138,8 @@ ax.bar([latex_labels[i] for i in [0, 1, 2]], rmse_vals, color=COLORS)
 ax.set_title(r"RMSE  ($\eta=" + f"{ETA_PLOT}$, $\\gamma={GAMMA_PLOT}$)")
 ax.set_ylabel("RMSE")
 plt.tight_layout()
-plt.savefig("finalfigures/eg_rmse_clp_clr_clrj.png", dpi=150)
-plt.show()
+# plt.savefig("finalfigures/eg_rmse_clp_clr_clrj.png", dpi=150)
+# plt.show()
 
 # ── EG Plot 6a: Histograms — recovery methods (shared axes) ──────────────────
 recovery_indices = [2, 3, 4]
@@ -166,8 +166,8 @@ for ax, idx, color in zip(axes, recovery_indices, COLORS):
     ax.set_xlim(global_lo, global_hi)
 axes[0].set_ylabel("Density")
 plt.tight_layout()
-plt.savefig("finalfigures/eg_hist_recovery.png", dpi=150)
-plt.show()
+# plt.savefig("finalfigures/eg_hist_recovery.png", dpi=150)
+# plt.show()
 
 # ── EG Plot 6b: RMSE bar chart — recovery methods ────────────────────────────
 rmse_vals = get_eg_rmse(ETA_PLOT, GAMMA_PLOT)[recovery_indices]
@@ -176,8 +176,8 @@ ax.bar([latex_labels[i] for i in recovery_indices], rmse_vals, color=COLORS)
 ax.set_title(r"RMSE — recovery methods  ($\eta=" + f"{ETA_PLOT}$, $\\gamma={GAMMA_PLOT}$)")
 ax.set_ylabel("RMSE")
 plt.tight_layout()
-plt.savefig("finalfigures/eg_rmse_recovery.png", dpi=150)
-plt.show()
+# plt.savefig("finalfigures/eg_rmse_recovery.png", dpi=150)
+# plt.show()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -221,8 +221,8 @@ ax.set_title("Mean recovery error per occurrence period: 17 vs 24 periods")
 ax.set_xticks(periods_plot)
 ax.legend()
 plt.tight_layout()
-plt.savefig("finalfigures/bk_bar_occurrence.png", dpi=150)
-plt.show()
+# plt.savefig("finalfigures/bk_bar_occurrence.png", dpi=150)
+# plt.show()
 
 # ── BK Plot 2: Histograms — CL (true R), CL (recovered), BK κ=1 ──────────────
 all_vals = np.concatenate([bk_total_R, bk_total_CL, bk_total_BK1])
@@ -237,8 +237,34 @@ plot_hist(axes[2], bk_total_BK1, "Total error – Benktander κ=1.0 (recovered R
 for ax in axes:
     ax.set_xlim(xmin, xmax)
 plt.tight_layout()
-plt.savefig("finalfigures/bk_hist_cl_bk.png", dpi=150)
-plt.show()
+# plt.savefig("finalfigures/bk_hist_cl_bk.png", dpi=150)
+# plt.show()
+
+# ── BK Plot 4: Distribution of J_P and J_P_min ───────────────────────────────
+bk_jp     = np.array([r["J_P"]     for r in bk_valid])
+bk_jp_min = np.array([r["J_P_min"] for r in bk_valid])
+jp_bins = np.arange(0, max(bk_jp.max(), bk_jp_min.max()) + 2) - 0.5
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
+fig.suptitle(r"Distribution of estimates $J_P$ and $J_{P,\min}$ ($\eta=1.1$)")
+for ax, data, label, color in zip(
+    axes,
+    [bk_jp, bk_jp_min],
+    [r"$J_P$", r"$J_{P,\min}$"],
+    ["steelblue", "mediumseagreen"],
+):
+    ax.hist(data, bins=jp_bins, color=color, edgecolor="black", alpha=0.8, density=True)
+    ax.axvline(data.mean(), color="red", linestyle="--", linewidth=1.5)
+    ax.text(0.97, 0.97, f"Mean = {data.mean():.1f}", transform=ax.transAxes,
+            ha="right", va="top", fontsize=9,
+            bbox=dict(facecolor="white", edgecolor="gray", alpha=0.8))
+    ax.set_title(f"Distribution of {label}")
+    ax.set_xlabel("Estimated value")
+    ax.set_xticks(np.arange(0, jp_bins[-1] + 1))
+axes[0].set_ylabel("Density")
+plt.tight_layout()
+#plt.savefig("finalfigures/bk_jp_distribution.png", dpi=150)
+#plt.show()
 
 # ── BK Plot 3: RMSE and Mean error vs kappa ───────────────────────────────────
 kappas_plot = [k for k in KAPPAS if k <= 10.0]
@@ -263,8 +289,8 @@ for label, arr in bk_ref.items():
 ax1.set_xlabel("κ"); ax1.set_ylabel("Mean total error"); ax1.set_title("Mean error vs κ"); ax1.legend()
 ax2.set_xlabel("κ"); ax2.set_ylabel("RMSE");              ax2.set_title("RMSE vs κ");       ax2.legend()
 plt.tight_layout()
-plt.savefig("finalfigures/bk_kappa.png", dpi=150)
-plt.show()
+# plt.savefig("finalfigures/bk_kappa.png", dpi=150)
+# plt.show()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -286,8 +312,8 @@ plot_hist(axes[1], lb_total_BK1, "Total error – Benktander κ=1.0 (recovered R
 for ax in axes:
     ax.set_xlim(xmin, xmax)
 plt.tight_layout()
-plt.savefig("finalfigures/lb_hist_cl_bk.png", dpi=150)
-plt.show()
+# plt.savefig("finalfigures/lb_hist_cl_bk.png", dpi=150)
+# plt.show()
 
 # ── LB Plot 2: RMSE and Mean error vs kappa (known labels) ───────────────────
 lb_rmse = [np.sqrt((lb_err_BK[k].sum(axis=1) ** 2).mean()) for k in kappas_plot]
@@ -310,5 +336,5 @@ for label, arr in lb_ref.items():
 ax1.set_xlabel("κ"); ax1.set_ylabel("Mean total error"); ax1.set_title("Mean error vs κ (known labels)"); ax1.legend()
 ax2.set_xlabel("κ"); ax2.set_ylabel("RMSE");              ax2.set_title("RMSE vs κ (known labels)");       ax2.legend()
 plt.tight_layout()
-plt.savefig("finalfigures/lb_kappa.png", dpi=150)
-plt.show()
+# plt.savefig("finalfigures/lb_kappa.png", dpi=150)
+# plt.show()
