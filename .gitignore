@@ -13,3 +13,4 @@ test_minimization.py
 test_recovery.py
 errordistribution.py
 diagnostics.py
+failed_recover_example.py
