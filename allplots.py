@@ -12,6 +12,11 @@ eg_errors     = eg["errors"]
 ETA_LIST      = eg["ETA_LIST"]
 GAMMA_LIST    = eg["GAMMA_LIST"]
 
+cl_results = np.load("CL_labelresults.npy", allow_pickle=True)
+cl_valid   = [r for r in cl_results if r is not None]
+CL_ETA_LIST   = [1.1, 1.2, 1.4]
+CL_GAMMA_LIST = [0, 1.0, 10, 100]
+
 bk_results = np.load("benktanderresults.npy", allow_pickle=True)
 bk_valid   = [r for r in bk_results if not np.isnan(r["err_CL"]).all()]
 
@@ -338,3 +343,23 @@ ax2.set_xlabel("κ"); ax2.set_ylabel("RMSE");              ax2.set_title("RMSE v
 plt.tight_layout()
 # plt.savefig("finalfigures/lb_kappa.png", dpi=150)
 # plt.show()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CL parameter sweep  (CL_labelresults.npy)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+col_w = 24
+print(f"\n{'ETA / GAMMA':<{col_w}}", end="")
+for GAMMA in CL_GAMMA_LIST:
+    print(f"  GAMMA={GAMMA:>5}", end="")
+print()
+print("-" * (col_w + 14 * len(CL_GAMMA_LIST)))
+
+for ETA in CL_ETA_LIST:
+    print(f"  ETA={ETA:<{col_w - 6}}", end="")
+    for GAMMA in CL_GAMMA_LIST:
+        errors = np.array([r[(ETA, GAMMA)] for r in cl_valid if not np.isnan(r[(ETA, GAMMA)])])
+        rmse = np.sqrt(np.mean(errors ** 2))
+        print(f"  {rmse:>12.0f}", end="")
+    print()
